@@ -47,7 +47,7 @@ class SourceProcessor:
             valid_sources = self._get_valid_sources(sources, num_elements)
             if not valid_sources:
                 return sources
-
+            
             if not pro_mode:
                 # Check if there's a Wikipedia article among valid sources
                 wiki_sources = [(i, source) for i, source in valid_sources 
@@ -99,5 +99,5 @@ class SourceProcessor:
     ) -> List[dict]:
         for (i, source), html in zip(valid_sources, html_contents):
             source['html'] = self._process_html_content(html, query)
-            # sources[i] = source
+            sources[i] = source
         return sources

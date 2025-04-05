@@ -73,6 +73,7 @@ class SearchAPI(ABC):
         stored_location: Optional[str] = None
     ) -> SearchResult[Dict[str, Any]]:
         """Get search results from the API"""
+        print("This method should be overridden in subclasses")
         pass
 
 class SerperAPI(SearchAPI):
@@ -110,6 +111,7 @@ class SerperAPI(SearchAPI):
             SearchResult containing the search results or error information
         """
         if not query.strip():
+            print("[ERROR] Query is empty")
             return SearchResult(error="Query cannot be empty")
 
         try:
@@ -152,8 +154,12 @@ class SerperAPI(SearchAPI):
             return SearchResult(data=results)
 
         except requests.RequestException as e:
+            print("[ERROR] API request failed:", str(e))
+            print("[ERROR] Response:", response.text)
             return SearchResult(error=f"API request failed: {str(e)}")
         except Exception as e:
+            print("[ERROR] Unexpected error:", str(e))
+            print("[ERROR] Response:", response.text)
             return SearchResult(error=f"Unexpected error: {str(e)}")
 
 
