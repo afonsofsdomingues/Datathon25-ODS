@@ -5,8 +5,8 @@ __pycache__/
 
 # C extensions
 *.so
-*.ipynb
-*.ipynb_checkpoints
+# *.ipynb
+# *.ipynb_checkpoints
 output/
 
 # Distribution / packaging
@@ -79,7 +79,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+# .ipynb_checkpoints
 
 # IPython
 profile_default/

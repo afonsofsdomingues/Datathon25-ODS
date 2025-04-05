@@ -10,10 +10,10 @@ load_dotenv()
 # Add command line argument parsing
 parser = argparse.ArgumentParser(description='Run the Gradio demo with custom models')
 parser.add_argument('--model-name',
-                   default=os.getenv("LITELLM_SEARCH_MODEL_ID", os.getenv("LITELLM_MODEL_ID", "openrouter/google/gemini-2.0-flash-001")),
+                   default=os.getenv("LITELLM_SEARCH_MODEL_ID", os.getenv("LITELLM_MODEL_ID", "fireworks_ai/accounts/fireworks/models/llama-v3-70b-instruct")),
                    help='Model name for search')
 parser.add_argument('--orchestrator-model',
-                   default=os.getenv("LITELLM_ORCHESTRATOR_MODEL_ID", os.getenv("LITELLM_MODEL_ID", "openrouter/google/gemini-2.0-flash-001")),
+                   default=os.getenv("LITELLM_ORCHESTRATOR_MODEL_ID", os.getenv("LITELLM_MODEL_ID", "fireworks_ai/accounts/fireworks/models/llama-v3-70b-instruct")),
                    help='Model name for orchestration')
 parser.add_argument('--reranker',
                    choices=['jina', 'infinity'],
