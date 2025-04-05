@@ -19,7 +19,7 @@ def grade_row(row_data):
     
     try:
         output = litellm.completion(
-            model="openrouter/google/gemini-2.0-flash-001",
+            model="fireworks_ai/deepseek-v3",
             messages=[{"role": "user", "content": input_prompt}],
             temperature=0.0
         )['choices'][0]['message']['content']

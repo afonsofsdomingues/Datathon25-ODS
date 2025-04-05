@@ -17,7 +17,7 @@ class OpenDeepSearchTool(Tool):
     def __init__(
         self,
         model_name: Optional[str] = None,
-        reranker: str = "infinity",
+        reranker: str = "gemini",
         search_provider: Literal["serper", "searxng"] = "serper",
         serper_api_key: Optional[str] = None,
         searxng_instance_url: Optional[str] = None,
@@ -33,7 +33,7 @@ class OpenDeepSearchTool(Tool):
 
     def forward(self, query: str):
         self.setup()
-        answer = self.search_tool.ask_sync(query, max_sources=2, pro_mode=True)
+        answer = self.search_tool.ask_sync(query, max_sources=2, pro_mode=False)
         return answer
 
     def setup(self):

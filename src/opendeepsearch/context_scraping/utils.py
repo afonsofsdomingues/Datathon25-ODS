@@ -5,7 +5,9 @@ from huggingface_hub import hf_hub_download
 import wikipediaapi
 
 # Load the model
+print("Loading FastText model...")
 model = fasttext.load_model(hf_hub_download("kenhktsui/llm-data-textbook-quality-fasttext-classifer-v2", "model.bin"))
+print("Model loaded.")
 
 def clean_markdown_links(text: str, min_quality_score: float = 0.2) -> Tuple[str, float]:
     """

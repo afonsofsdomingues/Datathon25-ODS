@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import torch
 from typing import List, Dict, Union
+from litellm import embedding
 
 class BaseSemanticSearcher(ABC):
     """
@@ -22,7 +23,18 @@ class BaseSemanticSearcher(ABC):
         Returns:
             torch.Tensor containing the embeddings shape: (num_texts, embedding_dim)
         """
-        pass
+        responses = []
+        batch_size = 100
+        for i in range(0, len(texts), 100):
+            batch = texts[i:i+batch_size]
+            responses.append(embedding(model="gemini/text-embedding-004", input=batch))
+
+        response_data = [response['data'] for response in responses]
+        embeddings = [torch.Tensor(item['embedding'], dtype='float32') for sublist in response_data for item in sublist]
+        embedding = embeddings[0]
+        return responses
+
+        return 
 
     def calculate_scores(
         self,
@@ -44,10 +56,13 @@ class BaseSemanticSearcher(ABC):
         Returns:
             torch.Tensor of shape (num_queries, num_documents) containing similarity scores
         """
+        # print("Calculating embeddings...")
         # Get embeddings for queries and documents
         query_embeddings = self._get_embeddings(queries)
+        # print("Query embeddings calculated.")
+        # print("Calculating document embeddings...")
         doc_embeddings = self._get_embeddings(documents)
-        
+        # print("Embeddings calculated.")
         # Calculate similarity scores
         scores = query_embeddings @ doc_embeddings.T
         
@@ -85,8 +100,9 @@ class BaseSemanticSearcher(ABC):
             For multiple queries: [[{"document": str, "score": float}, ...], ...]
         """
         queries = [query] if isinstance(query, str) else query
+        # print("Calculating scores...")
         scores = self.calculate_scores(queries, documents, normalize=normalize)
-        
+        # print("Scores calculated.")
         results = []
         for query_scores in scores:
             top_indices = torch.topk(query_scores, min(top_k, len(documents)), dim=0)
@@ -121,5 +137,7 @@ class BaseSemanticSearcher(ABC):
             For single query: List of reranked document strings
             For multiple queries: List of lists of reranked document strings
         """
+        # print("Reranking documents...")
         results = self.rerank(query, documents, top_k, normalize)
+        # print("Reranking completed.")
         return "\n".join([x['document'].strip() for x in results])
