@@ -33,7 +33,7 @@ class OpenDeepSearchTool(Tool):
 
     def forward(self, query: str):
         self.setup()
-        answer = self.search_tool.ask_sync(query, max_sources=2, pro_mode=False)
+        answer = self.search_tool.ask_sync(query, max_sources=3, pro_mode=True)
         return answer
 
     def setup(self):

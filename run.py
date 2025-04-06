@@ -14,7 +14,7 @@ nest_asyncio.apply()  # Enable nested event loops
 def create_codeAgent():
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct",
-        #reranker="jina"
+        reranker="jina"
     )
 
     model = LiteLLMModel(
@@ -34,7 +34,7 @@ def create_react_agent():
     )
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct", 
-        #reranker="jina"
+        reranker="jina"
     )
     # Initialize the React Agent with search tool
     react_agent = ToolCallingAgent(
@@ -58,6 +58,19 @@ async def run_react_async(queries: list[str]) -> pd.DataFrame:
     df = pd.DataFrame(results, columns=["original_question", "answer"])
     return df
 
+async def run_codeAgent_async(queries: list[str]) -> pd.DataFrame:
+    async def run_query(query: str) -> list:
+        # Create a fresh agent for each query to avoid state leakage.
+        agent = create_codeAgent()
+        result = await asyncio.to_thread(agent.run, query)
+        return [query, result]
+
+    # Create tasks for each query and run them concurrently
+    tasks = [run_query(query) for query in queries]
+    results = await asyncio.gather(*tasks)
+    df = pd.DataFrame(results, columns=["original_question", "answer"])
+    return df
+
 def merge_df_with_true_answers(df, df_benchmark):
     df_merged = pd.merge(df, df_benchmark, left_on="original_question", right_on="Prompt", how="inner")
     df_essential = df_merged[['original_question', 'answer', 'Answer']]
@@ -71,7 +84,7 @@ async def main():
     df_benchmark = pd.read_csv("hf://datasets/google/frames-benchmark/test.tsv", sep="\t", index_col=0)
     prompts = df_benchmark["Prompt"].tolist()
     # For demonstration, we only run the first prompt. You can extend this as needed.
-    result_df = await run_react_async(prompts[:2])
+    result_df = await run_codeAgent_async(prompts[:100])
     processed_df = merge_df_with_true_answers(result_df, df_benchmark)
     save_df_to_json(processed_df, "results.jsonl")
     print(processed_df)
