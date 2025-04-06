@@ -31,10 +31,14 @@ class OpenDeepSearchTool(Tool):
         self.searxng_instance_url = searxng_instance_url
         self.searxng_api_key = searxng_api_key
 
+        self.contexts = ""
+
     def forward(self, query: str):
         self.setup()
 
-        answer = self.search_tool.ask_sync(query, max_sources=2, pro_mode=True)
+        answer, context = self.search_tool.ask_sync(query, max_sources=2, pro_mode=True)
+
+        self.contexts = self.contexts + "\n\n" + context
         return answer
 
     def setup(self):
@@ -46,3 +50,10 @@ class OpenDeepSearchTool(Tool):
             searxng_instance_url=self.searxng_instance_url,
             searxng_api_key=self.searxng_api_key
         )
+
+    def flush_contexts(self):
+        self.contexts = ""
+        return True
+
+    def get_context(self):
+        return self.contexts
