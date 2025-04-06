@@ -84,7 +84,7 @@ class OpenDeepSearchAgent:
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False
+        pro_mode: bool = True
     ) -> str:
         """
         Performs a web search and builds a context from the search results.
@@ -121,7 +121,7 @@ class OpenDeepSearchAgent:
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False,
+        pro_mode: bool = True,
     ) -> str:
         """
         Searches for information and generates an AI response to the query.
@@ -160,7 +160,7 @@ class OpenDeepSearchAgent:
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False,
+        pro_mode: bool = True,
     ) -> str:
         """
         Synchronous version of ask() method.

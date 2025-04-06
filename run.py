@@ -1,7 +1,7 @@
 import nest_asyncio
 import asyncio
 from opendeepsearch import OpenDeepSearchTool
-from opendeepsearch.prompts import REACT_PROMPT
+from opendeepsearch.prompts import CODE_AGENT_PROMPT, REACT_PROMPT
 from smolagents import LiteLLMModel, ToolCallingAgent, CodeAgent
 import os
 from dotenv import load_dotenv
@@ -14,7 +14,7 @@ nest_asyncio.apply()  # Enable nested event loops
 def create_codeAgent():
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct",
-        reranker="jina"
+        # reranker="jina"
     )
 
     model = LiteLLMModel(
@@ -34,7 +34,7 @@ def create_react_agent():
     )
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct", 
-        reranker="jina"
+        # reranker="jina"
     )
     # Initialize the React Agent with search tool
     react_agent = ToolCallingAgent(
@@ -48,7 +48,7 @@ async def run_react_async(queries: list[str]) -> pd.DataFrame:
 
     async def run_query(query: str) -> list:
         # Create a fresh agent for each query to avoid state leakage.
-        agent = create_react_agent()
+        agent = create_codeAgent()
         result = await asyncio.to_thread(agent.run, query)
         return [query, result]
 
@@ -84,7 +84,7 @@ async def main():
     df_benchmark = pd.read_csv("hf://datasets/google/frames-benchmark/test.tsv", sep="\t", index_col=0)
     prompts = df_benchmark["Prompt"].tolist()
     # For demonstration, we only run the first prompt. You can extend this as needed.
-    result_df = await run_codeAgent_async(prompts[:100])
+    result_df = await run_codeAgent_async(prompts)
     processed_df = merge_df_with_true_answers(result_df, df_benchmark)
     save_df_to_json(processed_df, "results.jsonl")
     print(processed_df)

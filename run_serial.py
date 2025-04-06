@@ -1,6 +1,6 @@
 from opendeepsearch import OpenDeepSearchTool
 # from opendeepsearch.wolfram_tool import WolframAlphaTool
-from opendeepsearch.prompts import REACT_PROMPT
+from opendeepsearch.prompts import CODE_AGENT_PROMPT, REACT_PROMPT
 from smolagents import LiteLLMModel, ToolCallingAgent, Tool, CodeAgent
 import os
 from dotenv import load_dotenv
@@ -28,7 +28,7 @@ def run_react(queries: list[str]):
     )
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct", 
-        #reranker="jina"
+        reranker="jina"
     ) # Set reranker to "jina" or "infinity"
 
     # Initialize the Wolfram Alpha tool
@@ -53,7 +53,7 @@ def run_react(queries: list[str]):
 def run_codeAgent(queries: list[str]):
     search_agent = OpenDeepSearchTool(
         model_name="fireworks_ai/llama-v3p1-70b-instruct",
-        #reranker="jina"
+        reranker="jina"
     )
 
     model = LiteLLMModel(
@@ -93,10 +93,10 @@ def save_df_to_json(df, filename):
 
 
 df_benchmark = pd.read_csv("hf://datasets/google/frames-benchmark/test.tsv", sep="\t", index_col=0)
-prompts = df_benchmark["Prompt"].tolist()[:2]
+prompts = df_benchmark["Prompt"].tolist()[:100]
 
 if __name__ == "__main__":
     # Example usage
-    result_df = run_react(prompts)
+    result_df = run_codeAgent(prompts)
     processed_df = merge_df_with_true_answers(result_df, df_benchmark)
     save_df_to_json(processed_df, "results.jsonl")
