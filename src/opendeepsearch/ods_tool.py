@@ -1,6 +1,7 @@
 from typing import Optional, Literal
 from smolagents import Tool
 from opendeepsearch.ods_agent import OpenDeepSearchAgent
+from opendeepsearch.prompts import SEARCH_SYSTEM_PROMPT, SEARCH_SYSTEM_PROMPT_CONSTRAINTS
 
 class OpenDeepSearchTool(Tool):
     name = "web_search"
@@ -21,7 +22,8 @@ class OpenDeepSearchTool(Tool):
         search_provider: Literal["serper", "searxng"] = "serper",
         serper_api_key: Optional[str] = None,
         searxng_instance_url: Optional[str] = None,
-        searxng_api_key: Optional[str] = None
+        searxng_api_key: Optional[str] = None,
+        constraints: Optional[list[str]] = None,
     ):
         super().__init__()
         self.search_model_name = model_name  # LiteLLM model name
@@ -30,16 +32,20 @@ class OpenDeepSearchTool(Tool):
         self.serper_api_key = serper_api_key
         self.searxng_instance_url = searxng_instance_url
         self.searxng_api_key = searxng_api_key
+        self.constraints = constraints if constraints else ""
 
-    def forward(self, query: str):
+    def forward(self, query):
         self.setup()
-        answer = self.search_tool.ask_sync(query, max_sources=3, pro_mode=True)
+        answer = self.search_tool.ask_sync(query, max_sources=2, pro_mode=True)
         return answer
 
     def setup(self):
         self.search_tool = OpenDeepSearchAgent(
             self.search_model_name,
             reranker=self.reranker,
+            system_prompt=SEARCH_SYSTEM_PROMPT_CONSTRAINTS.format(
+                constraints=self.constraints
+            ),
             search_provider=self.search_provider,
             serper_api_key=self.serper_api_key,
             searxng_instance_url=self.searxng_instance_url,

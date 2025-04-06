@@ -1,7 +1,7 @@
 import pandas as pd
 import json
 
-df_results = pd.read_json("results.jsonl", orient='records', lines=True)
+df_results = pd.read_json("results2_tmp.jsonl", orient='records', lines=True)
 
 print("df_results:")
 print(df_results)

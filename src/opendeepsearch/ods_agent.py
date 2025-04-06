@@ -5,7 +5,7 @@ from opendeepsearch.context_building.build_context import build_context
 from litellm import completion, utils
 from dotenv import load_dotenv
 import os
-from opendeepsearch.prompts import SEARCH_SYSTEM_PROMPT
+from opendeepsearch.prompts import SEARCH_SYSTEM_PROMPT, SEARCH_SYSTEM_PROMPT_CONSTRAINTS
 import asyncio
 import nest_asyncio
 load_dotenv()
