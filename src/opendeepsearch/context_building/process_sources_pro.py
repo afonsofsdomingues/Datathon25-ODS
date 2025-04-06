@@ -46,7 +46,7 @@ class SourceProcessor:
         sources: List[dict], 
         num_elements: int, 
         query: str, 
-        pro_mode: bool = False
+        pro_mode: bool = True
     ) -> List[dict]:
         try:
             valid_sources = self._get_valid_sources(sources, num_elements)

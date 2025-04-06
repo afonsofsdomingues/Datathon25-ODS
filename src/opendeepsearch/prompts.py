@@ -586,3 +586,171 @@ If no tool call is needed, use final_answer tool to return your answer.
 
 Now Begin! If you solve the task correctly, you will receive a reward of $1,000,000.
 """)
+
+# CONSTRAINTS_PROMPT = """
+# You are an assistant whose job is to help me perform tasks. I will give you an instruction that implicitly contains a task
+# description, its context, and constraints to be followed. Your task is to list the constraints provided by the user in an
+# enumerated list format.
+#
+# Original Instruction: {instruction}
+#
+# Provided Constraints:
+# """
+
+CONSTRAINTS_PROMPT = """
+You are an expert assistant helping to formalize instructions. The user provides a task instruction that implicitly contains a task description, context, and specific constraints that must all be satisfied for a valid answer. Your job is to extract and list every constraint mentioned in the instruction, presenting them in an enumerated list. Each constraint represents a necessary condition.
+
+Instruction: {instruction}
+
+Extracted Constraints:
+"""
+
+# """
+# You are an assistant whose role is to analyze a given instruction that implicitly contains a task description, context, and specific constraints that must all be satisfied for a valid answer. Your job is to extract and list every constraint mentioned or implied in the instruction, presenting them in an enumerated list. Each constraint represents a necessary condition; if even one is unmet, the overall task cannot be successfully completed. Do not print anything else except for the constraints
+#
+# Instruction: {instruction}
+#
+# Extracted Constraints:
+# """
+
+
+# """
+# You are an assistant whose job is to help me perform tasks. I will give you an instruction that implicitly contains a task
+# description, its context, and constraints to be followed. Your task is to list the constraints provided by the user in an
+# enumerated list format. You are provided five examples, please follow the same format.
+#
+# Example 1:
+# Original Instruction: Write me a rap about AI taking over the world, that uses slangs and young language. It need to
+# sound like a real human wrote it. It would be cool if there’s a chorus very catchy that would be singed by a famous pop
+# artist. Make sure to include references about things that young people likes, such as memes, games, gossips. I want that in
+# the end, you revel that this was written by an AI.
+# Provided Constraints:
+# 1. Use slang and youth language.
+# 2. Make it sound like it was written by a real human.
+# 3. The song may have a very catchy chorus, which would be sung by a famous pop artist.
+# 4. Include references to things young people like, such as memes, games, gossip.
+# 5. Reveal at the end that this rap was written by an AI.
+#
+# Example 2:
+# Original Instruction: write me a 5-page essay that is about travel to taiwan. detail description is below Topic : The
+# Benefits of Traveling Sub Topic : Exposure to New Cultures Content 1 : Trying New Foods - I tryed to eat Fried stinky
+# tofu. smell was wierd but tasty was not bad. Content 2. : Exploring Historical Things - I saw Meat-shaped-stone in taipei
+# museum. the stone was really like stone! it was surprising! Length : around 2000 words Assume that audience is collage
+# student major in history. you can add historical events or news about what i experienced
+# Provided Constraints:
+# 1. Describe your experience of trying new foods, including your experience eating Fried stinky tofu (mention the peculiar
+# smell but the tasty flavor).
+# 2. Share your exploration of historical sites, with a specific mention of the Meat-shaped stone in the Taipei museum and
+# your surprise at its appearance.
+# 3. The essay should be approximately 2000 words in length, having around 5 pages.
+# 4. Assume the audience is college students majoring in history, so you can incorporate historical events or news related to
+# your travel experiences.
+#
+# Example 3:
+# Original Instruction: can you please write me a 150-word paragraph about epidermolysos bullosa which includes a
+# basic description of clinical features and a summary of the most prevalent genetic causes. please make sure to include
+# information on the inheritance pattern. please also write the paragraph in simple english that couldbe understand without a
+# genetic or medical bacakground
+# Provided Constraints:
+# 1. Provide a description of clinical features.
+# 2. Summarize the most common genetic causes.
+# 3. Explain the inheritance pattern.
+# 4. Ensure the paragraph is written in simple language for easy comprehension, even for those without a genetic or medical
+# background.
+# 5. The paragraph should be around 150 words in length.
+#
+# Example 4:
+# Original Instruction: write me a blog post that answers the following questions:What is the lifespan of a toaster? What
+# toasters are made in the USA? What are the top 10 toasters? What is the difference between a cheap and expensive toaster?
+# How much should you pay for a toaster? How often should toasters be replaced? Which toaster uses the least electricity?
+# How many watts should a good toaster have? What is the warranty on Mueller appliances? Is Mueller made in China?
+# Where are Mueller appliances manufactured?
+# Provided Constraints:
+# 1. Mention what is the lifespan of a toaster, and how often should toasters be replaced.
+# 2. Mention what toasters are made in the USA.
+# 3. Comment which are the top 10 toasters.
+# 4. Explain the difference between a cheap and a expensive toaster.
+# 5. Discuss prices, and how much should you pay for a toaster.
+# 6. Compare toaster regarding electricity use, mentioning how many watts should a good toaster have.
+# 7. State what is the warranty on Mueller appliances.
+# 8. Answer where are Mueller appliances manufactured, and if Mueller is made in China.
+#
+# Example 5:
+# Original Instruction: Hi Michael,
+# Hope you’re well?
+# Regarding my previous email to support HC with good price offers,
+# What are your current needs?
+# Hoping for your earliest reply.
+# Thanks in advance,
+# As a sales manager, the client hasn’t replied this email after 2 days. Your writing should include high complexity and burstiness. It must also be as brief as possible
+# Provided Constraints:
+# 1. Include high complexity and burstiness in your writing.
+# 2. Keep the email as brief as possible.
+#
+# Now follow the same format for the instruction below:
+#
+# Original Instruction: {instruction}
+#
+# Provided Constraints:
+# """
+
+
+FEEDBACK_PROMPT="""
+You are provided an instruction, an AI response to the instruction and a feedback about the response. Please correct the AI
+response according to the feedback provided.
+
+Instruction: ${instruction}
+
+AI response: ${previous_response}
+
+Feedback: ${feedback}
+
+Corrected response:
+"""
+
+CONSTRAINTS_SATISFIED_PROMPT = """
+You are an expert evaluator AI. Your task is to assess whether the given AI-generated answer fully satisfies a list of explicit constraints.
+
+Carefully read the list of constraints and the answer. Then respond with **only** one of the following:
+
+- "Yes" — if **all** constraints are clearly and fully satisfied in the answer.
+- "No" — if **any** constraint is partially or completely unmet.
+
+Do **not** explain your answer or include anything else.
+
+Constraints:
+{constraints}
+
+Answer:
+{answer}
+
+Does the answer satisfy all the constraints? Reply with only "Yes" or "No".
+"""
+
+CRITIQUE_PROMPT = """
+You are a helpful assistant evaluating whether a given AI-generated answer satisfies a list of explicit constraints.
+
+Your task:
+1. Identify which constraints were **not followed**.
+2. For each unmet constraint, explain **briefly** why it was violated.
+3. At the end, give a **summary sentence** like:
+   "Response did not follow X constraint(s): " followed by the unmet constraints in quotes.
+
+Format your output like this:
+
+---
+Unmet Constraints:
+1. "<Constraint 1>" — short explanation.
+2. "<Constraint 2>" — short explanation.
+...
+
+Summary:
+Response did not follow X constraint(s): "<Constraint 1>", "<Constraint 2>", ...
+---
+
+Constraints:
+{constraints}
+
+Answer:
+{answer}
+"""

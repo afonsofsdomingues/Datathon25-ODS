@@ -5,7 +5,7 @@ from opendeepsearch.context_building.build_context import build_context
 from litellm import completion, utils
 from dotenv import load_dotenv
 import os
-from opendeepsearch.prompts import SEARCH_SYSTEM_PROMPT
+from opendeepsearch.prompts import SEARCH_SYSTEM_PROMPT, CONSTRAINTS_PROMPT, CONSTRAINTS_SATISFIED_PROMPT, CRITIQUE_PROMPT, FEEDBACK_PROMPT
 import asyncio
 import nest_asyncio
 load_dotenv()
@@ -84,7 +84,7 @@ class OpenDeepSearchAgent:
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False
+        pro_mode: bool = True
     ) -> str:
         """
         Performs a web search and builds a context from the search results.
@@ -121,7 +121,8 @@ class OpenDeepSearchAgent:
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False,
+        pro_mode: bool = True,
+        max_refinements: int = 3,
     ) -> str:
         """
         Searches for information and generates an AI response to the query.
@@ -139,28 +140,69 @@ class OpenDeepSearchAgent:
         Returns:
             str: An AI-generated response that answers the query based on the gathered context.
         """
+
+        #TODO
+        # Call LLM API
+        # 1) Paraphrase the query to be better for LLM # https://aclanthology.org/2024.findings-emnlp.134.pdf
+        # 2) Get the constraints among the question # https://yuhsianglin.github.io/publications_files/2024_decrim.pdf
+
+        # Critique, if the constraints are met, we return the response content
+        # if constraints are not met, we go in a loop of maximum max_refinements times,
+        # we get the feedback from llm, then we give back the feedback with the query to hopefully get better results
+        # From the paper: LLM Self-Correction with DECRIM: DECOMPOSE, CRITIQUE, AND
+        # REFINE for Enhanced Following of Instructions with Multiple Constraints
+
         # Get context from search results
         context = await self.search_and_build_context(query, max_sources, pro_mode)
-        # Prepare messages for the LLM
-        messages = [
-            {"role": "system", "content": self.system_prompt},
-            {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {query}"}
-        ]
-        # Get completion from LLM
-        response = completion(
-            model=self.model,
-            messages=messages,
-            temperature=self.temperature,
-            top_p=self.top_p
-        )
 
-        return response.choices[0].message.content
+        # Decompose the instruction into constraints
+        constraints = await self.decompose_instruction(query)
+        print(f"Constraints: {constraints}")
+
+        def build_messages(context: str, query: str, feedback: Optional[dict] = None):
+            messages = [{"role": "system", "content": self.system_prompt}]
+            if feedback:
+                messages.append({
+                    "role": "user",
+                    "content": FEEDBACK_PROMPT.format(instruction=query, previous_response=feedback["previous_response"], feedback=feedback["feedback"])
+                })
+            else:
+                messages.append({
+                    "role": "user",
+                    "content": f"Context:\n{context}\n\nQuestion: {query}"
+                })
+            return messages
+
+        feedback = None
+        counter = 0
+        for refinement in range(max_refinements+1):
+            messages = build_messages(context, query, feedback)
+            response = completion(
+                model=self.model,
+                messages=messages,
+                temperature=self.temperature,
+                top_p=self.top_p
+            )
+            answer = response.choices[0].message.content
+
+            # --- CRITIQUE STAGE ---
+            if await self.constraints_satisfied(answer, constraints):
+                return answer  # ✅ Successful answer
+
+            # --- REFINE STAGE ---
+            feedback = await self.critique_constraints(answer, constraints)
+            print(f"Feedback : {feedback}")
+
+            # If still not satisfied after all refinements, return last version
+            counter += 1
+            print(counter)
+        return answer
 
     def ask_sync(
         self,
         query: str,
         max_sources: int = 2,
-        pro_mode: bool = False,
+        pro_mode: bool = True,
     ) -> str:
         """
         Synchronous version of ask() method.
@@ -177,3 +219,50 @@ class OpenDeepSearchAgent:
             asyncio.set_event_loop(loop)
 
         return loop.run_until_complete(self.ask(query, max_sources, pro_mode))
+
+    async def decompose_instruction(self, query: str) -> list[str]:
+        """Break down the instruction into constraints."""
+        # Prepare messages for the LLM
+        messages = [
+            {"role": "user", "content": CONSTRAINTS_PROMPT.format(instruction=query)},
+        ]
+        response = completion(
+            model=self.model,
+            messages=messages,
+            temperature=0.1  # Lower temp for more deterministic decomposition
+        )
+
+        # Parse the response into a list of constraints
+        constraints = [c.strip() for c in response.choices[0].message.content.split('\n') if c.strip()]
+        return constraints
+
+    async def constraints_satisfied(self, answer: str, constraints: list[str]) -> bool:
+        prompt = CONSTRAINTS_SATISFIED_PROMPT.format(
+            constraints='\n'.join(f"- {c}" for c in constraints),
+            answer=answer
+        )
+        response = completion(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.0
+        )
+        return "yes" in response.choices[0].message.content.strip().lower()
+
+    # ${
+    #     f"Response did not follow {len(constraints)} constraints{"s" if len(constraints) > 1 else ""}: " + " , ".join(["\"" + elem + "\"" for elem in constraints])
+    # }
+
+    async def critique_constraints(self, answer: str, constraints: list[str]) -> dict:
+        prompt = CRITIQUE_PROMPT.format(
+            constraints='\n'.join(f"- {c}" for c in constraints),
+            answer=answer
+        )
+        response = completion(
+            model=self.model,
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.2
+        )
+        return {
+            "previous_response": answer,
+            "feedback": response.choices[0].message.content.strip()
+        }
