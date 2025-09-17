@@ -32,8 +32,6 @@
   📄 <a href="https://arxiv.org/pdf/2503.20201">Read the Paper</a>
 </h4>
 
----
-
 # Datathon 2025 — Team *Siuuupremacy* — **Rank:** Top 4 🏆 
 
 ## Table of Contents 📑
@@ -55,8 +53,6 @@
   - [Acknowledgments 💡](#acknowledgments-)
   - [Citation](#citation)
   - [Contact 📩](#contact-)
-
----
 
 ## Project Resources 📁
 - [📄 Project Report](./Datathon_Report.pdf)  
